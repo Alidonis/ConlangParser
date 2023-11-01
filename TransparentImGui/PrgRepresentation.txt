@@ -1,0 +1,22 @@
+Main
+{
+	LDAC #2
+	STAC $0001
+	CALL @e
+}
+func e a b c
+{
+	LDA #7
+	LDB $1
+	store_a $0001
+	ADD &A, &B
+	if &AC == #2
+	{
+		LDB #65
+		PRNT &B
+		LDB #66
+		PRNT &B
+		LDB #67
+		PRNT &B
+	}
+}

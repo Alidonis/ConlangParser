@@ -1,0 +1,25 @@
+#alias STA store_a
+
+Main
+{
+	LDAC #2
+	STAC $0001
+	CALL @e
+}
+
+func e(a, b, c)
+{
+	LDA #7 // Value loading
+	LDB $1 // Address loading
+	store_a $0001 // Store to adress using alias of STA
+	ADD &A, &B
+	if (&AC == #2)
+	{
+		LDB #65
+		PRNT &B
+		LDB #66
+		PRNT &B
+		LDB #67
+		PRNT &B
+	}
+}

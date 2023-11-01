@@ -20,7 +20,7 @@ namespace ConLangInterpreter
         static void Main(string[] _args)
 #pragma warning restore IDE0060 // Restore the warning for other methods
         {
-            using (StreamReader SR = File.OpenText("Prg.txt"))
+            using (StreamReader SR = File.OpenText(@"../../../Prg.txt"))
             {
                 Parser.Parse(SR);
             }

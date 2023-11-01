@@ -60,7 +60,12 @@ namespace ConLangInterpreter
 		public string Name { get; internal set; }
 		public TokenFunctionParameter[]? parameters { get; internal set; }
         public TokenBlock Block { get; internal set; }
-	}
+
+        public TokenFunctionDefinition()
+        {
+            Block = new TokenBlock();
+        }
+    }
 
 	internal static class Parser
 	{
@@ -129,6 +134,7 @@ namespace ConLangInterpreter
                         foreach (string token in SplitToken)
                         {
                             if (token.TrimEnd() != "")
+                                Console.WriteLine(token);
                                 NewTokens.Add(token.TrimEnd());
                         }
                     }
@@ -137,11 +143,8 @@ namespace ConLangInterpreter
 
                 foreach (KeyValuePair<string, string> alias in Aliases)
 				{
-					Console.WriteLine(tokens[0]);
-					Console.WriteLine(alias.Value);
 					if (tokens[0] == alias.Value)
 					{
-						Console.WriteLine("Replacing " + tokens[0] + " with " + alias.Key);
 						tokens[0] = alias.Key;
 					}
 				}
@@ -217,6 +220,8 @@ namespace ConLangInterpreter
                                 innerBlock.Statements.Add(Statement);
                             }
 
+                            Function.Block.Statements.Add(new TokenStatement(innerBlock));
+
                             Functions[index] = Function;
 
                             OpenInnerBlocks -= 1;
@@ -227,6 +232,12 @@ namespace ConLangInterpreter
                             TokenFunctionDefinition Function = Functions[index];
                             TokenBlock TryPopResult;
                             if (TokenBlocks.TryPop(out TryPopResult) == false) throw new Exception("Tried to close inexistant codeblock (While parsing line \"" + (ParseLinesIterator + 1).ToString() + "\")\"");
+                            
+                            foreach (TokenStatement Statement in TryPopResult.Statements)
+                            {
+                                Function.Block.Statements.Add(Statement);
+                            }
+                            
                             Function.Block = TryPopResult;
 
                             Functions[index] = Function;
@@ -237,10 +248,10 @@ namespace ConLangInterpreter
 					case "func":
                         TokenFunctionDefinition functionDef = new TokenFunctionDefinition();
 
-                        functionDef.Name = ParseLines[ParseLinesIterator][0];
+                        functionDef.Name = ParseLines[ParseLinesIterator][1];
 
 						List<TokenFunctionParameter> FunctionParameters = new();
-						for (int functionParamsIterator = 1; functionParamsIterator < ParseLines[ParseLinesIterator].Length; functionParamsIterator++)
+						for (int functionParamsIterator = 2; functionParamsIterator < ParseLines[ParseLinesIterator].Length; functionParamsIterator++)
 						{
 							TokenFunctionParameter Parameter = new();
 							Parameter.Name = ParseLines[ParseLinesIterator][functionParamsIterator];
@@ -256,13 +267,6 @@ namespace ConLangInterpreter
 
                         break;
                     default:
-						string completeCodeLine = "";
-
-						foreach (string s in ParseLines[ParseLinesIterator])
-						{
-							completeCodeLine += s + " ";
-						}
-
 						string OpCode = ParseLines[ParseLinesIterator][0];
 						List<string> parameters = new();
 						for (int i3 = 1; i3 < ParseLines[ParseLinesIterator].Length; i3++)
@@ -307,8 +311,47 @@ namespace ConLangInterpreter
                     }
                 }
                 Console.WriteLine(" TokenBlock : ");
+                foreach (TokenStatement Statement in functionDef.Block.Statements)
+                {
+                    if (Statement.Instruction != null)
+                    {
+                        Console.WriteLine(" Instruction : ");
+                        Console.WriteLine(Statement.Instruction.Value.opcode);
+                        Console.WriteLine(" Parameters : ");
+                        foreach (string Parameter in Statement.Instruction.Value.parameters)
+                        {
+                            Console.WriteLine(Parameter);
+                        }
+                    }
+                    if (Statement.InnerBlock != null)
+                    {
+                        Console.WriteLine(" InnerBlock : ");
+                        PrintInnerBlock(Statement.InnerBlock);
+                    }
+                }
             }
 		}
+        private static void PrintInnerBlock(TokenInnerBlock? Block)
+        {
+            foreach (TokenStatement statement in Block.Value.Statements)
+            {
+                if (statement.Instruction != null)
+                {
+                    Console.WriteLine("Instruction : ");
+                    Console.WriteLine(statement.Instruction.Value.opcode);
+                    Console.WriteLine("Parameters : ");
+                    foreach (string Parameter in statement.Instruction.Value.parameters)
+                    {
+                        Console.WriteLine(Parameter);
+                    }
+                }
+                if (statement.InnerBlock != null)
+                {
+                    Console.WriteLine(" InnerBlock : ");
+                    PrintInnerBlock(statement.InnerBlock);
+                }
+            }
+        }
 
 		private static int AllocateSymbolMemory(List<UInt16> UsedMemory)
 		{
