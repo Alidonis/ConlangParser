@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransparentImGui", "TransparentImGui\TransparentImGui.csproj", "{ECCF994D-7DDB-423A-8ED0-D2236037A88E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8FB4F8E8-48AE-4D21-BE39-596C2A5D6079}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ECCF994D-7DDB-423A-8ED0-D2236037A88E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECCF994D-7DDB-423A-8ED0-D2236037A88E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECCF994D-7DDB-423A-8ED0-D2236037A88E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECCF994D-7DDB-423A-8ED0-D2236037A88E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0E1EF853-EBFE-4D9C-91C1-63BDB5FCC54E}
+	EndGlobalSection
+EndGlobal
