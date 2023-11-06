@@ -18,7 +18,7 @@ namespace ConLangInterpreter
 
 		STAC, // Store Accumulator
 		STA, // Store Register (A->D)
-        STB,
+		STB,
 		STC,
 		STD,
 
@@ -45,7 +45,7 @@ namespace ConLangInterpreter
 		PRG_END
 	}
 
-    struct Instruction
+	struct Instruction
 	{
 		public readonly OperationCode OpCode;
 		public readonly OperationParameter? Param1;
@@ -136,11 +136,7 @@ namespace ConLangInterpreter
 					this.Address = _Value;
 					this.Type = _Type;
 					break;
-                case OpParamType.INT_Symbol:
-                    this.Symbol = _Value;
-                    this.Type = _Type;
-                    break;
-                default:
+				default:
 					Interpreter.Error(new Exception("Tried creating invalid instruction parameter."));
 					break;
 			}
@@ -248,15 +244,15 @@ namespace ConLangInterpreter
 		{
 			if (!dumpRegisters)
 			{
-                Console.WriteLine("- Register Dump -");
+				Console.WriteLine("- Register Dump -");
 
-                Console.WriteLine("Accumulator .. " + Registers[(int)RegisterSelect.Accumulator]);
+				Console.WriteLine("Accumulator .. " + Registers[(int)RegisterSelect.Accumulator]);
 
-                Console.WriteLine("Register A .. " + Registers[(int)RegisterSelect.RegisterA]);
-                Console.WriteLine("Register B .. " + Registers[(int)RegisterSelect.RegisterB]);
-                Console.WriteLine("Register C .. " + Registers[(int)RegisterSelect.RegisterC]);
-                Console.WriteLine("Register D .. " + Registers[(int)RegisterSelect.RegisterD]);
-            }
+				Console.WriteLine("Register A .. " + Registers[(int)RegisterSelect.RegisterA]);
+				Console.WriteLine("Register B .. " + Registers[(int)RegisterSelect.RegisterB]);
+				Console.WriteLine("Register C .. " + Registers[(int)RegisterSelect.RegisterC]);
+				Console.WriteLine("Register D .. " + Registers[(int)RegisterSelect.RegisterD]);
+			}
 
 			Console.WriteLine("- Memory Dump -");
 			for (int i = start; i < end; i++) 
@@ -280,14 +276,14 @@ namespace ConLangInterpreter
 			return false;
 		}
 
-        private protected void EndProgram()
-        {
-            running = false;
-            InstructionPointer = 0;
-            Status = ProgramStatus.Finished;
-        }
+		private protected void EndProgram()
+		{
+			running = false;
+			InstructionPointer = 0;
+			Status = ProgramStatus.Finished;
+		}
 
-        public void StepFrame()
+		public void StepFrame()
 		{
 			if (InstructionPointer >= Instructions.Count)
 			{
@@ -336,9 +332,9 @@ namespace ConLangInterpreter
 					break;
 
 				case OperationCode.PRG_END:
-                    EndProgram();
+					EndProgram();
 					break;
-                default:
+				default:
 					Interpreter.Error(new NotImplementedException("OperationCode " + Instructions[InstructionPointer].OpCode.ToString() + " is not implemented.\nEmily if you're the one coding FIX THIS!\n"));
 					running = false;
 					break;
