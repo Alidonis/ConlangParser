@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using ConLangInterpreter;
 using TransparentImGui;
+using Veldrid.OpenGLBinding;
 
 namespace TransparentImGui
 {
@@ -28,7 +29,7 @@ namespace TransparentImGui
 				if (result == null) result = new();
 				if (token.Instruction != null)
 				{
-					Instruction Instruction;
+					Instruction Instruction = new();
 					if (token.Instruction.Value.parameters.Length > 4) throw new OverflowException("Expected up to 4 parameters, got "+ token.Instruction.Value.parameters.Length+".");
 					
 					string param1;
@@ -45,7 +46,26 @@ namespace TransparentImGui
 							param1 = token.Instruction.Value.parameters[0];
 							Instruction = new Instruction(token.Instruction.Value.opcode, ConvertToParameter(param1));
 							break;
+						case 2:
+							param1 = token.Instruction.Value.parameters[0];
+							param2 = token.Instruction.Value.parameters[1];
+							Instruction = new Instruction(token.Instruction.Value.opcode, ConvertToParameter(param1), ConvertToParameter(param2));
+							break;
+						case 3:
+							param1 = token.Instruction.Value.parameters[0];
+							param2 = token.Instruction.Value.parameters[1];
+							param3 = token.Instruction.Value.parameters[2];
+							Instruction = new Instruction(token.Instruction.Value.opcode, ConvertToParameter(param1), ConvertToParameter(param2), ConvertToParameter(param3));
+							break;
+						case 4:
+							param1 = token.Instruction.Value.parameters[0];
+							param2 = token.Instruction.Value.parameters[1];
+							param3 = token.Instruction.Value.parameters[2];
+							param4 = token.Instruction.Value.parameters[3];
+							Instruction = new Instruction(token.Instruction.Value.opcode, ConvertToParameter(param1), ConvertToParameter(param2), ConvertToParameter(param3), ConvertToParameter(param4));
+							break;
 					}
+					result.Add(Instruction);
 				}
 			}
 		}
@@ -55,7 +75,7 @@ namespace TransparentImGui
 			switch (paramstring[0])
 			{
 				case '&': //register
-					switch(paramstring.Substring(1))
+					switch (paramstring.Substring(1))
 					{
 						case "A":
 							parameter.Register = RegisterSelect.RegisterA;
@@ -70,15 +90,16 @@ namespace TransparentImGui
 							parameter.Register = RegisterSelect.RegisterA;
 							break;
 						default:
-							throw new Exception("Innexistan register : Expected avalue 'A','B','C' or 'D', got '"+ paramstring.Substring(1)+"'.");
+							throw new Exception("Innexistan register : Expected value 'A','B','C' or 'D', got '" + paramstring.Substring(1) + "'.");
 					}
 					break;
 				case '$': //adress
+					parameter.Address = ushort.Parse(paramstring.Substring(1));
 					break;
 				case '#': //value litteral
+					parameter.Value = ushort.Parse(paramstring.Substring(1));
 					break;
-				case '@': //callable
-					break;
+				default: throw new Exception("Invalid addressing statement: " + paramstring);
 			}
 			return parameter;
 		}
