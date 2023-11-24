@@ -8,7 +8,7 @@ using Microsoft.Win32;
 namespace ConLangInterpreter
 {
 
-	enum OperationCode
+	public enum OperationCode
 	{
 		LDAC, // Load Accumulator.
 		LDA, // Load Register (A->D)
@@ -28,13 +28,12 @@ namespace ConLangInterpreter
 		DIV,
 
 		JMP,
-		JMP_IF_ZERO,
 		JMP_IF_GREATER,
 		JMP_IF_LESSER,
 		JMP_IF_EQUAL,
+		JMP_IF_NOT_EQUAL,
 		JMP_IF_GREATER_EQUAL,
 		JMP_IF_LESSER_EQUAL,
-		JMP_IF_NULL,
 
 		STACK_PUSH,
 		STACK_POP,
@@ -45,7 +44,7 @@ namespace ConLangInterpreter
 		PRG_END
 	}
 
-	struct Instruction
+	public struct Instruction
 	{
 		public readonly OperationCode OpCode;
 		public readonly OperationParameter? Param1;
@@ -95,7 +94,7 @@ namespace ConLangInterpreter
 		}
 	}
 
-	enum OpParamType
+	public enum OpParamType
 	{
 		Value,
 		Address,
@@ -103,7 +102,7 @@ namespace ConLangInterpreter
 		Accumulator,
 		INT_Symbol
 	}
-	enum RegisterSelect
+	public enum RegisterSelect
 	{
 		Accumulator,
 		RegisterA,
@@ -112,7 +111,7 @@ namespace ConLangInterpreter
 		RegisterD,
 	}
 
-	struct OperationParameter
+	public struct OperationParameter
 	{
 		public OpParamType Type;
 

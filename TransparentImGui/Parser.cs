@@ -9,10 +9,29 @@ using Newtonsoft.Json.Linq;
 
 namespace ConLangInterpreter
 {
+	internal enum InstructionCondition
+	{
+		IF_GREATER,
+		IF_LESSER,
+		IF_EQUAL,
+		IF_NOT_EQUAL,
+		IF_GREATER_EQUAL,
+		IF_LESSER_EQUAL,
+	}
+
+	internal struct TokenCondition
+	{
+		public string Operand1;
+		public InstructionCondition ConditionOperator;
+		public string Operand2;
+	}
+
 	internal struct TokenStatement
 	{
 		public TokenInstruction? Instruction { get; internal set; }
 		public TokenBlock? InnerBlock { get; internal set; }
+
+		public TokenCondition? Condition { get; internal set; }
 
 		public TokenStatement(TokenInstruction _instruction)
 		{
@@ -22,11 +41,16 @@ namespace ConLangInterpreter
 		{
 			InnerBlock = _innerBlock;
 		}
+		public TokenStatement(TokenBlock _innerBlock, TokenCondition _condition)
+		{
+			InnerBlock = _innerBlock;
+			Condition = _condition;
+		}
 	}
 
 	internal struct TokenInstruction
 	{
-		public string opcode { get; internal set; }
+		public OperationCode opcode { get; internal set; }
 		public string[] parameters { get; internal set; }
 	}
 	internal struct TokenVariable
@@ -36,6 +60,7 @@ namespace ConLangInterpreter
 	internal struct TokenBlock
 	{
 		public List<TokenStatement> Statements { get; internal set; }
+
 
 		public TokenBlock()
 		{
@@ -118,13 +143,13 @@ namespace ConLangInterpreter
 					for (int i = 0; i < tokens.Length; i++)
 					{
 						tokens[i] = tokens[i].Replace(',', '\x0000');
-						tokens[i] = tokens[i].Replace('(', ' ');
-						tokens[i] = tokens[i].Replace(')', ' ');
+						tokens[i] = tokens[i].Replace('(', '\x0000');
+						tokens[i] = tokens[i].Replace(')', '\x0000');
 
 						string[] SplitToken = tokens[i].Split(" ");
 						foreach (string token in SplitToken)
 						{
-							if (token.TrimEnd() != "")
+							if (token != "" || token != "\x0000")
 								Console.WriteLine(token);
 								NewTokens.Add(token.TrimEnd());
 						}
@@ -139,6 +164,13 @@ namespace ConLangInterpreter
 						tokens[0] = alias.Key;
 					}
 				}
+
+				if (tokens[0].StartsWith("//"))
+				{
+					CodeLine = CodeFile.ReadLine();
+					continue;
+				}
+				
 
 				List<string> TokensFinal = new();
 
@@ -178,18 +210,123 @@ namespace ConLangInterpreter
 		{
 			Functions = new();
 
-			Stack<TokenBlock> TokenBlocks;
+			Stack<TokenBlock> TokenBlocks = new();
+			Stack<TokenCondition> ConditionsStack = new();
 
 			for (int i = 0; i < Tokens.Count; i++)
 			{
 				switch (Tokens[i][0])
 				{
+					case "Main":
+						TokenFunctionDefinition TKFuncMain = new();
+						TKFuncMain.Name = "Main";
+						TKFuncMain.parameters = null;
+						Functions.Add( TKFuncMain );
+						break;
+					case "func":
+						TokenFunctionDefinition TKFuncDef = new();
+						TKFuncDef.Name = Tokens[i][1];
+
+						List<TokenFunctionParameter> FunctionParams = new();
+
+						for (int FuncParamIterator = 2; FuncParamIterator < Tokens[i].Length; FuncParamIterator++)
+						{
+							var Param = new TokenFunctionParameter();
+							Param.Name = Tokens[i][FuncParamIterator];
+							FunctionParams.Add(Param);
+						}
+						TKFuncDef.parameters = FunctionParams.ToArray();
+						Functions.Add(TKFuncDef);
+						break;
 					case "if":
+						TokenCondition condition = new();
+
+						condition.Operand1 = Tokens[i][1];
+						condition.ConditionOperator = convertToCondition(Tokens[i][2]);
+						condition.Operand2 = Tokens[i][3];
+
+						ConditionsStack.Push(condition);
+						break;
+					case "{":
+						TokenBlocks.Push( new TokenBlock() );
+						break;
+					case "}":
+						if (TokenBlocks.Count < 1) throw new Exception("Cannot close innexistant codeblock");
+
+						if (TokenBlocks.Count == 1)
+						{
+							TokenBlock FuncBlock = TokenBlocks.Pop();
+							var func = Functions[Functions.Count - 1];
+							func.Block = FuncBlock;
+							Functions[Functions.Count - 1] = func;
+						} 
+						else if ( TokenBlocks.Count > 1)
+						{
+							TokenBlock InnerBlock = TokenBlocks.Pop();
+							TokenStatement InnerBlockStatement;
+							TokenBlock CurrentBlock = TokenBlocks.Pop();
+
+							InnerBlockStatement = CurrentBlock.Statements[CurrentBlock.Statements.Count - 1];
+
+							InnerBlockStatement.InnerBlock = InnerBlock;
+
+							CurrentBlock.Statements[CurrentBlock.Statements.Count - 1] = InnerBlockStatement;
+							
+							if (ConditionsStack.Count > 0)
+							{
+								TokenCondition Cond = ConditionsStack.Pop();
+								InnerBlockStatement.Condition = Cond;
+							}
+
+							TokenBlocks.Push( CurrentBlock );
+						}
+						break;
+					default:
+						if (TokenBlocks.Count < 1) throw new Exception("Cannot parse expression outside code block");
+						TokenStatement Statement = new();
+						TokenInstruction Instruction = new();
+
+						OperationCode OpCode;
+						Enum.TryParse(Tokens[i][0], out OpCode);
+
+						Instruction.opcode = OpCode;
+
+						Console.WriteLine(OpCode.ToString());
+
+						List<string> InstructionParams = new();
+
+						for (int i2 = 1; i2 < Tokens[i].Length; i2++)
+						{
+							InstructionParams.Add(Tokens[i][i2]);
+						}
+						Instruction.parameters = InstructionParams.ToArray();
+						Statement.Instruction = Instruction;
+						TokenBlocks.Peek().Statements.Add(Statement);
 						break;
 				}
+				PrintTokenTree(Functions);
 			}
+		}
 
-			
+		private static InstructionCondition convertToCondition(string cond)
+		{
+			switch (cond)
+			{
+				case "==":
+					return InstructionCondition.IF_EQUAL;
+				case "!=":
+					return InstructionCondition.IF_NOT_EQUAL;
+				case ">":
+					return InstructionCondition.IF_GREATER;
+				case "<":
+					return InstructionCondition.IF_LESSER;
+				case ">=":
+					return InstructionCondition.IF_LESSER_EQUAL;
+				case "<=":
+					return InstructionCondition.IF_GREATER_EQUAL;
+				default:
+					throw new Exception("No matching condition for "+cond);
+			}
 		}
 
 		private static void PrintTokenTree(List<TokenFunctionDefinition> FunctionNodes)
@@ -222,6 +359,10 @@ namespace ConLangInterpreter
 					}
 					if (Statement.InnerBlock != null)
 					{
+						if (Statement.Condition != null)
+						{
+
+						}
 						Console.WriteLine(" InnerBlock : ");
 						PrintInnerBlock(Statement.InnerBlock);
 					}
@@ -230,6 +371,8 @@ namespace ConLangInterpreter
 		}
 		private static void PrintInnerBlock(TokenBlock? Block)
 		{
+			if (Block == null) return;
+
 			foreach (TokenStatement statement in Block.Value.Statements)
 			{
 				if (statement.Instruction != null)
@@ -248,11 +391,6 @@ namespace ConLangInterpreter
 					PrintInnerBlock(statement.InnerBlock);
 				}
 			}
-		}
-
-		private static int AllocateSymbolMemory(List<UInt16> UsedMemory)
-		{
-			throw new NotImplementedException();
 		}
 	}
 }

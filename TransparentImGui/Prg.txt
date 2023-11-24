@@ -12,8 +12,8 @@ func e(a, b, c)
 	LDA #7 // Value loading
 	LDB $1 // Address loading
 	store_a $0001 // Store to adress using alias of STA
-	ADD &A, &B
-	if (&AC == #2)
+	ADD &A, &B //add registers together
+	if (&AC == #9)
 	{
 		LDB #65
 		PRNT &B

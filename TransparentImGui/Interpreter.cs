@@ -24,25 +24,6 @@ namespace ConLangInterpreter
 		static void Main(string[] _args)
 #pragma warning restore IDE0060 // Restore the warning for other methods
 		{
-			/*try 
-			{
-				using (StreamReader SR = File.OpenText(@"../../../Prg.txt"))
-				{
-					Parser.Parse(SR);
-				}
-			} catch (FileNotFoundException _NotFound)
-			{
-				try
-				{
-					using (StreamReader SR = File.OpenText(@"./Prg.txt"))
-					{
-						Parser.Parse(SR);
-					}
-				} catch (Exception _err)
-				{
-					Error(new Exception(_err.Message, _NotFound));
-				}
-			}*/
 			_ = new Interpreter();
 		}
 	}

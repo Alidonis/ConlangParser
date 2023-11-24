@@ -3,38 +3,96 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using ClickableTransparentOverlay;
 using ImGuiNET;
+using Vortice.Win32;
 
 namespace ConLangInterpreter
 {
-	
+	internal static class Да
+	{
+		public static bool isOpen { get; internal set; } = false;
+	}
 	internal class DebugInterface : Overlay
 	{
 		private readonly DebugInterface Interface;
-		private Program PrgInstance = new(new List<Instruction> { new Instruction(OperationCode.ADD, new OperationParameter(OpParamType.Value, 2), new OperationParameter(OpParamType.Value, 5)), new Instruction(OperationCode.STAC, new OperationParameter(OpParamType.Value, 0)), new Instruction(OperationCode.LDA, new OperationParameter(RegisterSelect.Accumulator)) });
+		private Program PrgInstance = new(new List<Instruction> { });
 
 		bool open = true;
+		bool FileDialogOpen = false;
+
+		byte[] fileNameBuffer = new byte[128];
 		public DebugInterface()
 		{
 			Interface = this;
 			Interface.Start();
 		}
 
+		public void OpenFile(string filename)
+		{
+			try
+			{
+				string s = @"..\..\..\" + filename.TrimEnd().TrimStart();
+				Console.WriteLine(s);
+				Console.WriteLine(filename);
+				StreamReader FileStream = new(s);
+				Parser.Parse(FileStream);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
+			
+		}
+
 		protected override void Render()
 		{
+			if (FileDialogOpen)
+			{
+				ImGui.Begin("File Selector", ref FileDialogOpen);
+
+				ImGui.InputText("##SelectFile", fileNameBuffer, 128);
+
+				if (ImGui.Button("Open File"))
+				{
+					FileDialogOpen = false;
+					List<byte> ByteArr = new();
+					foreach (byte v in fileNameBuffer)
+					{
+						if (v != 0)
+						{
+							ByteArr.Add(v);
+						}
+					}
+					OpenFile(Encoding.Default.GetString(ByteArr.ToArray()));
+				}
+
+				ImGui.End();
+			}
 			if (!open) { Interface.Close(); return; }
 			if (open)
 			{
-				ImGui.Begin("Debug Tool", ref open, ImGuiWindowFlags.AlwaysAutoResize);
-				ImGui.Text("Debug interface");
+				ImGui.Begin("Interpreter", ref open, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.MenuBar);
+
+				if (ImGui.BeginMenuBar())
+				{
+					if (ImGui.MenuItem("Open..."))
+					{
+						FileDialogOpen = true;
+					}
+					ImGui.EndMenuBar();
+				}
+
+
+				ImGui.Text("Interpreter v1");
 
 				ImGui.Separator();
 
 				ImGui.Text("Instruction .. " + PrgInstance.InstructionPointer);
 				ImGui.Text(" Total instructions count .. " + PrgInstance.Instructions.Count);
 
-				if (PrgInstance.GetIsFinished())
+				if (PrgInstance.GetIsFinished() && !(PrgInstance.Instructions.Count == 0))
 				{
 					ImGui.Text("Program finished");
 					ImGui.SameLine();
@@ -73,7 +131,8 @@ namespace ConLangInterpreter
 					try
 					{
 						PrgInstance.StepFrame();
-					} catch (Exception Err)
+					}
+					catch (Exception Err)
 					{
 						Interpreter.Error(Err);
 					}

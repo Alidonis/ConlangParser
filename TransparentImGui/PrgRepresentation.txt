@@ -6,11 +6,36 @@ Main
 }
 func e a b c
 {
-	LDA #7
-	LDB $1
-	store_a $0001
-	ADD &A, &B
-	if &AC == #2
+LDA #7
+LDB $1
+STA $0001
+ADD &A, &B
+if &AC == #9
+{
+LDB #65
+PRNT &B
+LDB #66
+PRNT &B
+LDB #67
+PRNT &B
+}
+}
+
+- with tabs -
+
+Main
+{
+	LDAC #2
+	STAC $0001
+	CALL @e
+}
+func e a b c
+{
+	LDA #7 // Value loading
+	LDB $1 // Address loading
+	STA $0001 // Store to adress using alias of STA
+	ADD &A &B //add registers together
+	if &AC == #9
 	{
 		LDB #65
 		PRNT &B
